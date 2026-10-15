@@ -1,10 +1,11 @@
+import os
 import sqlite3
 from flask import Flask, request
 
 app = Flask(__name__)
 
-# BAD: hardcoded secret (fake key)
-AWS_ACCESS_KEY_ID = "AKIAQWERTYUIOPASDFGH"
+# Secrets come from the environment, never from source code
+AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID")
 
 
 def get_db():
@@ -22,12 +23,12 @@ def home():
 def get_user():
     name = request.args.get("name", "")
     conn = get_db()
-    # BAD: SQL injection via string formatting
-    query = f"SELECT id, name FROM users WHERE name = '{name}'"
-    rows = conn.execute(query).fetchall()
+    # Parameterized query prevents SQL injection
+    rows = conn.execute(
+        "SELECT id, name FROM users WHERE name = ?", (name,)
+    ).fetchall()
     return {"results": rows}
 
 
 if __name__ == "__main__":
-    # BAD: debug mode on, listening on all interfaces
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(host=os.environ.get("HOST", "127.0.0.1"), port=5000, debug=False)
