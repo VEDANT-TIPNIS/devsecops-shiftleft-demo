@@ -1,0 +1,1 @@
+printf "users.db\n__pycache__/\n*.sarif\n"
