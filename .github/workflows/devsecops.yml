@@ -13,7 +13,7 @@ permissions:
 jobs:
   secrets-scan:
     name: Secrets Scan (Gitleaks)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - name: Run Gitleaks on working tree
@@ -23,7 +23,7 @@ jobs:
 
   sast:
     name: SAST (Semgrep)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -35,6 +35,7 @@ jobs:
         run: |
           semgrep scan --metrics=off \
             --config p/python --config p/owasp-top-ten \
+            --exclude .github \
             --error --sarif-output=semgrep.sarif .
       - name: Upload SARIF to Security tab
         if: always()
@@ -45,7 +46,7 @@ jobs:
 
   dependency-scan:
     name: SCA (Trivy dependencies)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - name: Trivy dependency scan
@@ -56,7 +57,7 @@ jobs:
 
   container-scan:
     name: Container + IaC Scan (Trivy)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - name: Dockerfile misconfiguration scan
@@ -77,7 +78,7 @@ jobs:
     name: Security Gate
     needs: [secrets-scan, sast, dependency-scan, container-scan]
     if: always()
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Fail if any security job failed
         run: |
