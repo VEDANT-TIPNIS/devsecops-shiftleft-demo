@@ -39,7 +39,7 @@ jobs:
       - name: Upload SARIF to Security tab
         if: always()
         continue-on-error: true
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: semgrep.sarif
 
@@ -48,15 +48,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Trivy filesystem scan
-        uses: aquasecurity/trivy-action@0.28.0
-        with:
-          scan-type: fs
-          scan-ref: .
-          scanners: vuln
-          severity: HIGH,CRITICAL
-          ignore-unfixed: true
-          exit-code: "1"
+      - name: Trivy dependency scan
+        run: |
+          docker run --rm -v "$PWD:/work" -w /work aquasec/trivy:latest \
+            fs --scanners vuln --severity HIGH,CRITICAL \
+            --ignore-unfixed --exit-code 1 .
 
   container-scan:
     name: Container + IaC Scan (Trivy)
@@ -64,24 +60,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Dockerfile misconfiguration scan
-        uses: aquasecurity/trivy-action@0.28.0
-        with:
-          scan-type: config
-          scan-ref: .
-          severity: HIGH,CRITICAL
-          exit-code: "1"
+        run: |
+          docker run --rm -v "$PWD:/work" -w /work aquasec/trivy:latest \
+            config --severity HIGH,CRITICAL --exit-code 1 .
       - name: Build image
         if: always()
         run: docker build -t demo-app:${{ github.sha }} .
       - name: Scan image for CVEs
         if: always()
-        uses: aquasecurity/trivy-action@0.28.0
-        with:
-          scan-type: image
-          image-ref: demo-app:${{ github.sha }}
-          severity: HIGH,CRITICAL
-          ignore-unfixed: true
-          exit-code: "1"
+        run: |
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+            aquasec/trivy:latest image --severity HIGH,CRITICAL \
+            --ignore-unfixed --exit-code 1 demo-app:${{ github.sha }}
 
   security-gate:
     name: Security Gate
