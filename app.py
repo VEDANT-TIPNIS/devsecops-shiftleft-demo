@@ -32,3 +32,4 @@ def get_user():
 
 if __name__ == "__main__":
     app.run(host=os.environ.get("HOST", "127.0.0.1"), port=5000, debug=False)
+    API_KEY = "AKIAQWERTYUIOPASDFGH"
