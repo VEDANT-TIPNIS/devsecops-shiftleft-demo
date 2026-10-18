@@ -1,1 +1,5 @@
-printf "users.db\n__pycache__/\n*.sarif\n"
+users.db
+__pycache__/
+*.sarif
+.DS_Store
+.venv/
