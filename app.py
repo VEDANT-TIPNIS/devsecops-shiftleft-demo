@@ -23,12 +23,14 @@ def home():
 def get_user():
     name = request.args.get("name", "")
     conn = get_db()
-    # Parameterized query prevents SQL injection
-    rows = conn.execute(
-        "SELECT id, name FROM users WHERE name = ?", (name,)
-    ).fetchall()
+    #SQL injection
+    query = f"SELECT id, name FROM users WHERE name = '{name}'"
+    rows = conn.execute(query).fetchall()
     return {"results": rows}
 
 
 if __name__ == "__main__":
-    app.run(host=os.environ.get("HOST", "127.0.0.1"), port=5000, debug=False)
+    #Bad: debug mode on, listening on all interfaces
+    app.run(host="0.0.0.0", port=5000, debug=True)
+    
+API_KEY = "AKIAQWERTYUIOPASDFGH"
